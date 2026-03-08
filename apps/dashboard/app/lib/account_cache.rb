@@ -162,7 +162,7 @@ module AccountCache
     # This behavior is replicated in OOD Core by conditionally setting deny_qos to an empty array.
     return false if queue.allow_accounts && !queue.allow_accounts.include?(account.to_s)
     return false if queue.deny_accounts.include?(account.to_s)
-    return false if queue.allow_qos && !(queue.allow_qos & account.qos).any?    
+    return false if queue.allow_qos && !(queue.allow_qos & account.qos).any?
     return false if (queue.deny_qos & account.qos).any?
     true
   end

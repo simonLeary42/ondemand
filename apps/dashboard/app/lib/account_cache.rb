@@ -135,6 +135,10 @@ module AccountCache
 
   # do you have _any_ account that can submit to this queue?
   def blocked_queue?(queue)
+    if queue.to_s == "test-partition-allow-qos1"
+      allowed = (accounts.select {|account| account_allowed?(queue, account)})
+      $stderr.puts "allowed accounts: #{allowed}"
+    end
     (accounts.select {|account| account_allowed?(queue, account)}).empty?
   end
 
@@ -167,7 +171,7 @@ module AccountCache
     # this account doesn't have any of the required QoSes
     return false if !queue.allow_qos.empty? && (account.qos & queue.allow_qos).empty?
     # all of this account's QoSes are denied
-    return false if !queue.deny_qos.empty? && (account.qos.to_set - queue.deny_qos.to_set).empty?
+    return false if !queue.deny_qos.empty? && !account.qos.empty? && (account.qos.to_set - queue.deny_qos.to_set).empty?
     true
   end
 

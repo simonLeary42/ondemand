@@ -2372,7 +2372,7 @@ class BatchConnectTest < ApplicationSystemTestCase
       select('test-account-has-no-qoses', from: bc_ele_id('auto_accounts'))
       assert_auto_queues_queue_displayed('test-partition-allow-all-deny-none', true)
       assert_auto_queues_queue_displayed('test-partition-allow-qos1', false)
-      assert_auto_queues_queue_displayed('test-partition-deny-qos2', false)
+      assert_auto_queues_queue_displayed('test-partition-deny-qos2', true)
       assert_auto_queues_queue_displayed('test-partition-allow-qos1-deny-qos2', false)
 
       select('test-account-has-qos1', from: bc_ele_id('auto_accounts'))

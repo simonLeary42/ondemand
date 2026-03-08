@@ -160,7 +160,7 @@ module AccountCache
   # given resource manager. For example, Slurm completely ignores DenyQos when AllowQos exists.
   # This behavior is replicated in OOD Core by conditionally setting deny_qos to an empty array.
   def account_allowed?(queue, account)
-    # this account is explicitly allowed
+    # some accounts are explicitly allowed and this account is not one of them
     return false if !queue.allow_accounts.nil? && !queue.allow_accounts.empty? && !queue.allow_accounts.include?(account.to_s)
     # this account is explicitly denied
     return false if queue.deny_accounts.include?(account.to_s)

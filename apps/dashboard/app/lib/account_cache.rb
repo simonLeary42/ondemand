@@ -163,7 +163,7 @@ module AccountCache
     return false if !queue.allow_accounts.nil? && !queue.allow_accounts.empty? && !queue.allow_accounts.include?(account.to_s)
     return false if queue.deny_accounts.include?(account.to_s)
     # this account doesn't have any of the required QoSes
-    return false if !queue.allow_qos.empty? && (account.qos.to_set & queue.allow_qos).empty?
+    return false if !queue.allow_qos.empty? && (account.qos & queue.allow_qos).empty?
     # all of this account's QoSes are denied
     return false if !queue.deny_qos.empty? && (account.qos.to_set - queue.deny_qos.to_set).empty?
     true

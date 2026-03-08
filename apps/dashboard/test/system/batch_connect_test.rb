@@ -36,6 +36,7 @@ class BatchConnectTest < ApplicationSystemTestCase
                                  .returns(OodCore::Job::Info.new(id: 'job-id-123', status: :running))
   end
 
+  # note: some queues have display: none, but others may be completely absent
   def assert_auto_queues_queue_displayed(queue, displayed)
     account = find_value('auto_accounts')
     expected = displayed ? "" : "display: none;"

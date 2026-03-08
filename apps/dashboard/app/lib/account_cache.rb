@@ -149,7 +149,7 @@ module AccountCache
   end
 
   def queue_account_data(queue)
-    unavailable_accounts = account_names.reject do |account|
+    unavailable_accounts = accounts.reject do |account|
       account_allowed?(queue, account)
     end.map(&:to_s)
     disabled_account_data(unavailable_accounts)

@@ -2344,6 +2344,45 @@ class BatchConnectTest < ApplicationSystemTestCase
     end
   end
 
+  test 'auto queues qos aware' do
+    Dir.mktmpdir do |dir|
+      form = <<~HEREDOC
+        ---
+        cluster:
+          - owens
+        form:
+          - auto_accounts
+          - auto_queues
+      HEREDOC
+
+      make_bc_app(dir, form)
+      visit new_batch_connect_session_context_url('sys/app')
+
+      # defaults
+      assert_equal 'owens', find_value('cluster')
+
+      select('test-account-has-no-qoses', from: bc_ele_id('auto_accounts'))
+      assert_equal('display: none;', find_option_style('auto_queues', 'test-partition-allow-qos1'))
+      assert_equal('', find_option_style('auto_queues', 'test-partition-deny-qos2'))
+      assert_equal('display: none;', find_option_style('auto_queues', 'test-partition-allow-qos1-deny-qos2'))
+
+      select('test-account-has-qos1', from: bc_ele_id('auto_accounts'))
+      assert_equal('', find_option_style('auto_queues', 'test-partition-allow-qos1'))
+      assert_equal('', find_option_style('auto_queues', 'test-partition-deny-qos2'))
+      assert_equal('', find_option_style('auto_queues', 'test-partition-allow-qos1-deny-qos2'))
+
+      select('test-account-has-qos2', from: bc_ele_id('auto_accounts'))
+      assert_equal('display: none;', find_option_style('auto_queues', 'test-partition-allow-qos1'))
+      assert_equal('display: none;', find_option_style('auto_queues', 'test-partition-deny-qos2'))
+      assert_equal('display: none;', find_option_style('auto_queues', 'test-partition-allow-qos1-deny-qos2'))
+
+      select('test-account-has-qos1-qos2', from: bc_ele_id('auto_accounts'))
+      assert_equal('', find_option_style('auto_queues', 'test-partition-allow-qos1'))
+      assert_equal('display: none;', find_option_style('auto_queues', 'test-partition-deny-qos2'))
+      assert_equal('', find_option_style('auto_queues', 'test-partition-allow-qos1-deny-qos2'))
+    end
+  end
+
   test 'auto qos are dynamic' do
     Dir.mktmpdir do |dir|
       "#{dir}/app".tap { |d| Dir.mkdir(d) }

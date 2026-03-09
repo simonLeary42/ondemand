@@ -4,7 +4,8 @@ import { ariaNotify } from './utils'
 var idPrefix = undefined;
 var shortNameRex = undefined;
 
-// @example ['NodeType', 'Cluster']
+// a "token" is a reformatted HTML element ID
+// example: batch_connect_session_context_auto_accounts => AutoAccounts
 const formTokens = [];
 
 // simple lookup table to indicate that the change handler is setup between two

@@ -827,8 +827,8 @@ function tokenFromExclusiveOptionFor(str) {
   return sharedTokenFromOptionFor(str, 'exclusiveOptionFor');
 }
 
-function sharedToggleOptionsFor(_event, elementId, optionForType) {
-  const options = [...document.querySelectorAll(`#${elementId} option`)];
+function sharedToggleOptionsFor(_event, causeId, optionForType) {
+  const options = [...document.querySelectorAll(`#${causeId} option`)];
   let hideSelectedValue = undefined;
 
   options.forEach(option => {
@@ -852,27 +852,27 @@ function sharedToggleOptionsFor(_event, elementId, optionForType) {
         continue;
       }
       const value = document.getElementById(optionForId).value;
-      let optionForValue = mountainCaseWords(value);
+      let causeValue = mountainCaseWords(value);
 
-      let optionForAlias = '';
-      if ((elementId in aliasLookup) && (value in aliasLookup[elementId])) {
-        optionForAlias = aliasLookup[elementId][value];
+      let causeIdAlias = '';
+      if ((causeId in aliasLookup) && (value in aliasLookup[causeId])) {
+        causeIdAlias = aliasLookup[causeId][value];
       }
       // handle special case where the very first token here is a number.
       // browsers expect a prefix of hyphens as if it's the next token.
-      if (optionForValue.match(/^\d/)) {
-        optionForValue = `-${optionForValue}`;
+      if (causeValue.match(/^\d/)) {
+        causeValue = `-${causeValue}`;
       }
       if (optionForType == 'optionFor') {
-        let key = `optionFor${token}${optionForValue}`;
+        let key = `optionFor${token}${causeValue}`;
         if (!(key in option.dataset)) {
-          key = `optionFor${token}${optionForAlias}`;
+          key = `optionFor${token}${causeIdAlias}`;
         }
         hide = option.dataset[key] === 'false';
       } else if (optionForType == 'exclusiveOptionFor') {
-        let key = `exclusiveOptionFor${token}${optionForValue}`;
+        let key = `exclusiveOptionFor${token}${causeValue}`;
         if (!(key in option.dataset)){
-          key = `exclusiveOptionFor${token}${optionForAlias}`;
+          key = `exclusiveOptionFor${token}${causeIdAlias}`;
         }
         hide = !(option.dataset[key] === 'true');
       }
@@ -881,7 +881,7 @@ function sharedToggleOptionsFor(_event, elementId, optionForType) {
       }
     };
 
-    const elementInfo = getWidgetInfo(elementId);
+    const elementInfo = getWidgetInfo(causeId);
     if(hide) {
       if(option.selected) {
         option.selected = false;
@@ -902,7 +902,7 @@ function sharedToggleOptionsFor(_event, elementId, optionForType) {
   // be the current selected value.
   // if you've hidden what _was_ selected.
   if(hideSelectedValue !== undefined) {
-    let others = [...document.querySelectorAll(`#${elementId} option[value='${hideSelectedValue}']`)];
+    let others = [...document.querySelectorAll(`#${causeId} option[value='${hideSelectedValue}']`)];
     let newSelectedOption = undefined;
 
     // You have hidden what _was_ selected, so try to find a duplicate option that is visible
@@ -917,7 +917,7 @@ function sharedToggleOptionsFor(_event, elementId, optionForType) {
 
     // no duplicates are visible, so just pick the first visible option
     if (newSelectedOption === undefined) {
-      others = document.querySelectorAll(`#${elementId} option`);
+      others = document.querySelectorAll(`#${causeId} option`);
       others.forEach(ele => {
         if(newSelectedOption === undefined && ele.style.display === '') {
           newSelectedOption = ele;
@@ -931,7 +931,7 @@ function sharedToggleOptionsFor(_event, elementId, optionForType) {
   }
 
   // now that we're done, propagate this change to data-set or data-hide handlers
-  document.getElementById(elementId).dispatchEvent((new Event('change', { bubbles: true })));
+  document.getElementById(causeId).dispatchEvent((new Event('change', { bubbles: true })));
 }
 
 // get attributes based on widget id

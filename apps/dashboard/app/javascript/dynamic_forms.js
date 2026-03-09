@@ -835,50 +835,99 @@ function sharedToggleOptionsFor(_event, elementId, contextStr) {
   options.forEach(option => {
     let hide = false;
 
+    // Build a reverse alias lookup for THIS option's aliases only
+    // Maps alias names (e.g., 'account1') to actual values (e.g., 'test-account-has-qos2')
+    const localReverseAliases = {};
+    Object.keys(option.dataset).forEach(dataKey => {
+      if (dataKey.startsWith('alias')) {
+        const aliasName = snakeCaseWords(dataKey.replace(/^alias/, ''));
+        const aliasValue = option.dataset[dataKey];
+        localReverseAliases[aliasName] = aliasValue;
+      }
+    });
+
     // even though an event occurred - an option may be hidden based on the value of
     // something else entirely. We're going to hide this option if _any_ of the
     // option-for- directives apply.
     for (let key of Object.keys(option.dataset)) {
-      let optionFor = '';
+      // Skip non-directive keys
+      if(!key.startsWith(contextStr)) {
+        continue;
+      }
 
+      // Extract the target element token (e.g., 'AutoAccounts' from 'optionForAutoAccountsAccount1')
+      let optionFor = '';
       if (contextStr == 'optionFor') {
         optionFor = optionForFromToken(key);
       } else if (contextStr == 'exclusiveOptionFor') {
         optionFor = exclusiveOptionForFromToken(key);
       }
-      let optionForId = idFromToken(key.replace(new RegExp(`^${contextStr}`),''));
 
-      // it's some other directive type, so just keep going and/or not real
-      if(!key.startsWith(contextStr) || optionForId === undefined) {
+      // Get the full remainder after removing prefix (e.g., 'AutoAccountsAccount1')
+      const remainder = key.replace(new RegExp(`^${contextStr}`), '');
+      
+      // Try to get the target element ID
+      const optionForId = idFromToken(remainder);
+      
+      // If we can't find a matching element, skip this directive
+      if(optionForId === undefined) {
         continue;
       }
-      const value = document.getElementById(optionForId).value;
-      let optionForValue = mountainCaseWords(value);
 
-      let optionForAlias = '';
-      if ((elementId in aliasLookup) && (value in aliasLookup[elementId])) {
-        optionForAlias = aliasLookup[elementId][value];
-      }
-      // handle special case where the very first token here is a number.
-      // browsers expect a prefix of hyphens as if it's the next token.
-      if (optionForValue.match(/^\d/)) {
-        optionForValue = `-${optionForValue}`;
-      }
-      if (contextStr == 'optionFor') {
-        let key = `optionFor${optionFor}${optionForValue}`;
-        if (!(key in option.dataset)) {
-          key = `optionFor${optionFor}${optionForAlias}`;
+      // Get the current value of the controlling element
+      const currentValue = document.getElementById(optionForId).value;
+      
+      // Extract the suffix after the element name (e.g., 'Account1' from 'AutoAccountsAccount1')
+      const elementToken = optionFor; // e.g., 'AutoAccounts'
+      const suffix = remainder.replace(new RegExp(`^${elementToken}`), ''); // e.g., 'Account1'
+      
+      // Check if this directive applies to the current value
+      let applies = false;
+      
+      if (suffix && suffix.length > 0) {
+        // There's a suffix - resolve it using THIS option's local aliases
+        const suffixSnakeCase = snakeCaseWords(suffix);
+        if (suffixSnakeCase in localReverseAliases) {
+          // The suffix is an alias defined on this option
+          const targetValue = localReverseAliases[suffixSnakeCase];
+          applies = (targetValue === currentValue);
         }
-        hide = option.dataset[key] === 'false';
-      } else if (contextStr == 'exclusiveOptionFor') {
-        let key = `exclusiveOptionFor${optionFor}${optionForValue}`;
-        if (!(key in option.dataset)){
-          key = `exclusiveOptionFor${optionFor}${optionForAlias}`;
+        // If not an alias, the suffix might directly encode the value
+        // but typically it should be an alias, so we don't apply if no alias found
+      } else {
+        // No suffix means the directive key should match the current value exactly
+        // Try to construct what the key should be for the current value
+        let optionForValue = mountainCaseWords(currentValue);
+        if (optionForValue.match(/^\d/)) {
+          optionForValue = `-${optionForValue}`;
         }
-        hide = !(option.dataset[key] === 'true');
+        
+        let expectedKey = `${contextStr}${optionFor}${optionForValue}`;
+        applies = (key === expectedKey);
+        
+        // Also check if current value has an alias
+        if (!applies && (elementId in aliasLookup) && (currentValue in aliasLookup[elementId])) {
+          const currentAlias = aliasLookup[elementId][currentValue];
+          expectedKey = `${contextStr}${optionFor}${currentAlias}`;
+          applies = (key === expectedKey);
+        }
       }
-      if (hide) {
-        break;
+
+      // If this directive applies to the current value, evaluate it
+      if (applies) {
+        const directiveValue = option.dataset[key];
+        
+        if (contextStr == 'optionFor') {
+          // For optionFor: "false" means hide
+          hide = directiveValue === 'false';
+        } else if (contextStr == 'exclusiveOptionFor') {
+          // For exclusiveOptionFor: "true" means show, anything else means hide
+          hide = !(directiveValue === 'true');
+        }
+        
+        if (hide) {
+          break;
+        }
       }
     };
 

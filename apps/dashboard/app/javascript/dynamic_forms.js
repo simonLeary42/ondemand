@@ -838,12 +838,12 @@ function sharedToggleOptionsFor(_event, targetId, optionForType) {
     // something else entirely. We're going to hide this option if _any_ of the
     // option-for- directives apply.
     for (let key of Object.keys(option.dataset)) {
-      let token = '';
+      let causeToken = '';
 
       if (optionForType == 'optionFor') {
-        token = tokenFromOptionFor(key);
+        causeToken = tokenFromOptionFor(key);
       } else if (optionForType == 'exclusiveOptionFor') {
-        token = tokenFromExclusiveOptionFor(key);
+        causeToken = tokenFromExclusiveOptionFor(key);
       }
       let causeId = idFromToken(key.replace(new RegExp(`^${optionForType}`),''));
 
@@ -864,15 +864,15 @@ function sharedToggleOptionsFor(_event, targetId, optionForType) {
         causeValue = `-${causeValue}`;
       }
       if (optionForType == 'optionFor') {
-        let key = `optionFor${token}${causeValue}`;
+        let key = `optionFor${causeToken}${causeValue}`;
         if (!(key in option.dataset)) {
-          key = `optionFor${token}${targetIdAlias}`;
+          key = `optionFor${causeToken}${targetIdAlias}`;
         }
         hide = option.dataset[key] === 'false';
       } else if (optionForType == 'exclusiveOptionFor') {
-        let key = `exclusiveOptionFor${token}${causeValue}`;
+        let key = `exclusiveOptionFor${causeToken}${causeValue}`;
         if (!(key in option.dataset)){
-          key = `exclusiveOptionFor${token}${targetIdAlias}`;
+          key = `exclusiveOptionFor${causeToken}${targetIdAlias}`;
         }
         hide = !(option.dataset[key] === 'true');
       }

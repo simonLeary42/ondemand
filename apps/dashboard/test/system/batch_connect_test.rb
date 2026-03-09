@@ -2357,7 +2357,7 @@ class BatchConnectTest < ApplicationSystemTestCase
       form = <<~HEREDOC
         ---
         cluster:
-          - owens
+          - test-cluster
         form:
           - auto_accounts
           - auto_queues
@@ -2367,7 +2367,7 @@ class BatchConnectTest < ApplicationSystemTestCase
       visit new_batch_connect_session_context_url('sys/app')
 
       # defaults
-      assert_equal 'owens', find_value('cluster')
+      assert_equal 'test-cluster', find_value('cluster')
 
       select('test-account-has-no-qoses', from: bc_ele_id('auto_accounts'))
       assert_auto_queues_queue_displayed('test-partition-allow-qos-all-deny-none', true)

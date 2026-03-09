@@ -850,7 +850,7 @@ function sharedToggleOptionsFor(_event, targetId, optionForType) {
       let causeId = idFromToken(key.replace(new RegExp(`^${optionForType}`),''));
 
       // it's some other directive type, so just keep going and/or not real
-      if(!key.startsWith(optionForType) || targetId === undefined) {
+      if(!key.startsWith(optionForType) || causeId === undefined) {
         continue;
       }
       const causeValueRaw = document.getElementById(causeId).value;

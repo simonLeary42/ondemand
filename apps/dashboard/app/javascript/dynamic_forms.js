@@ -137,9 +137,7 @@ function makeChangeHandlers(prefix){
           // the variable 'opt' is just a data structure, not a jQuery result. 
           // it has no attr, data, show or hide methods so we have to query
           // for it again
-          let data = $(`${optionSearch}`).filter(function() {
-            return (this.value === opt.value);
-          }).data();
+          let data = $(`${optionSearch}`).filter(() => this.value === opt.value).data();
           let keys = Object.keys(data).sort();
           if(keys.length !== 0) {
             keys.forEach((key) => {

@@ -798,18 +798,18 @@ function cacheAliases(elementId) {
 }
 
 /**
- * Extract the option for out of an option for directive.
+ * Extract the token out of an option-for directive.
  *
  * @example
  *  optionForClusterOakley -> Cluster
  *  exclusiveOptionForClusterOakley -> Cluster
  *
- * @param {*} str
+ * @param {*} optionFor
  * @returns - the option for string
  */
-function sharedOptionForFromToken(str, optionForType) {  
+function sharedTokenFromOptionFor(optionFor, optionForType) {
   return formTokens.map((token) => {
-    let match = str.match(`^${optionForType}${token}`);
+    let match = optionFor.match(`^${optionForType}${token}`);
 
     if (match && match.length >= 1) {
       return token;
@@ -819,12 +819,12 @@ function sharedOptionForFromToken(str, optionForType) {
   })[0];
 }
 
-function optionForFromToken(str) {
-  return sharedOptionForFromToken(str, 'optionFor');
+function tokenFromOptionFor(str) {
+  return sharedTokenFromOptionFor(str, 'optionFor');
 }
 
-function exclusiveOptionForFromToken(str) {
-  return sharedOptionForFromToken(str, 'exclusiveOptionFor');
+function tokenFromExclusiveOptionFor(str) {
+  return sharedTokenFromOptionFor(str, 'exclusiveOptionFor');
 }
 
 function sharedToggleOptionsFor(_event, elementId, contextStr) {
@@ -838,12 +838,12 @@ function sharedToggleOptionsFor(_event, elementId, contextStr) {
     // something else entirely. We're going to hide this option if _any_ of the
     // option-for- directives apply.
     for (let key of Object.keys(option.dataset)) {
-      let optionFor = '';
+      let token = '';
 
       if (contextStr == 'optionFor') {
-        optionFor = optionForFromToken(key);
+        token = tokenFromOptionFor(key);
       } else if (contextStr == 'exclusiveOptionFor') {
-        optionFor = exclusiveOptionForFromToken(key);
+        token = tokenFromExclusiveOptionFor(key);
       }
       let optionForId = idFromToken(key.replace(new RegExp(`^${contextStr}`),''));
 
@@ -864,15 +864,15 @@ function sharedToggleOptionsFor(_event, elementId, contextStr) {
         optionForValue = `-${optionForValue}`;
       }
       if (contextStr == 'optionFor') {
-        let key = `optionFor${optionFor}${optionForValue}`;
+        let key = `optionFor${token}${optionForValue}`;
         if (!(key in option.dataset)) {
-          key = `optionFor${optionFor}${optionForAlias}`;
+          key = `optionFor${token}${optionForAlias}`;
         }
         hide = option.dataset[key] === 'false';
       } else if (contextStr == 'exclusiveOptionFor') {
-        let key = `exclusiveOptionFor${optionFor}${optionForValue}`;
+        let key = `exclusiveOptionFor${token}${optionForValue}`;
         if (!(key in option.dataset)){
-          key = `exclusiveOptionFor${optionFor}${optionForAlias}`;
+          key = `exclusiveOptionFor${token}${optionForAlias}`;
         }
         hide = !(option.dataset[key] === 'true');
       }

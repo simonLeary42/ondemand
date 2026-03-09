@@ -135,10 +135,6 @@ module AccountCache
 
   # do you have _any_ account that can submit to this queue?
   def blocked_queue?(queue)
-    if queue.to_s == "test-partition-allow-qos1"
-      allowed = (accounts.select {|account| account_allowed?(queue, account)})
-      $stderr.puts "allowed accounts: #{allowed}"
-    end
     (accounts.select {|account| account_allowed?(queue, account)}).empty?
   end
 

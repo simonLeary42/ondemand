@@ -45,7 +45,7 @@ APP = App.new(
 
 # path to your application root.
 APP_ROOT = Pathname.new File.expand_path("../../",  __FILE__)
-CACHE = "#{ENV['HOME']}/.cache/yarn/ood-dashboard-app"
+CACHE = "tmp/yarn-cache"
 
 chdir APP_ROOT do
   # This script is a starting point to setup your application.

@@ -3,6 +3,10 @@ import { ariaNotify } from './utils'
 // these are initialized in makeChangeHandlers
 var idPrefix = undefined;
 var shortNameRex = undefined;
+// aliasLookup is a nested hash of the form
+// {optionId: {value: alias}}
+// Note that values can have special characters so you must access with [] operator
+var aliasLookup = undefined;
 
 // a "token" is a reformatted HTML element ID
 // example: batch_connect_session_context_auto_accounts => AutoAccounts
@@ -29,11 +33,6 @@ const setValueLookup = {};
 const hideLookup = {};
 const labelLookup = {};
 const helpLookup = {};
-
-// aliasLookup is a nested hash of the form
-// {optionId: {value: alias}}
-// Note that values can have special characters so you must access with [] operator
-const aliasLookup = {};
 
 // the regular expression for mountain casing
 const mcRex = /[-_]([a-z])|([_-][0-9])|([\/])/g;
@@ -125,6 +124,7 @@ function makeChangeHandlers(prefix){
   // initialize some global variables.
   idPrefix = prefix;
   shortNameRex = new RegExp(`${idPrefix}_([\\w\\-]+)`);
+  aliasLookup = {}
 
   const allElements = $(`[id^=${idPrefix}]`);
   memorizeElements(allElements);
@@ -854,9 +854,9 @@ function sharedToggleOptionsFor(_event, targetId, optionForType) {
       const causeValueRaw = document.getElementById(causeId).value;
       let causeValue = mountainCaseWords(causeValueRaw);
 
-      let targetIdAlias = '';
+      let causeValueAlias = '';
       if ((targetId in aliasLookup) && (causeValueRaw in aliasLookup[targetId])) {
-        targetIdAlias = aliasLookup[targetId][causeValueRaw];
+        causeValueAlias = aliasLookup[targetId][causeValueRaw];
       }
       // handle special case where the very first token here is a number.
       // browsers expect a prefix of hyphens as if it's the next token.
@@ -866,13 +866,13 @@ function sharedToggleOptionsFor(_event, targetId, optionForType) {
       if (optionForType == 'optionFor') {
         let key = `optionFor${causeToken}${causeValue}`;
         if (!(key in option.dataset)) {
-          key = `optionFor${causeToken}${targetIdAlias}`;
+          key = `optionFor${causeToken}${causeValueAlias}`;
         }
         hide = option.dataset[key] === 'false';
       } else if (optionForType == 'exclusiveOptionFor') {
         let key = `exclusiveOptionFor${causeToken}${causeValue}`;
         if (!(key in option.dataset)){
-          key = `exclusiveOptionFor${causeToken}${targetIdAlias}`;
+          key = `exclusiveOptionFor${causeToken}${causeValueAlias}`;
         }
         hide = !(option.dataset[key] === 'true');
       }

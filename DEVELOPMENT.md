@@ -242,3 +242,17 @@ by setting _anything_ in the `OOD_MNT_` environment variables.
 * `OOD_MNT_PORTAL` mounts <project_root>/ood-portal-generator to /opt/ood/ood-portal-generator
 * `OOD_MNT_NGINX` mounts <project_root>/nginx_stage to /opt/ood/nginx_stage
 * `OOD_MNT_PROXY` mounts <project_root>/ood_proxy to /opt/ood/ood_proxy
+
+## Running Tests
+
+some examples:
+
+`./bin/bundle exec rake test`
+
+`./bin/bundle exec rake test:system`
+
+`./bin/bundle exec rake test:integration`
+
+`./bin/bundle exec rake test:units`
+
+`./bin/bundle exec rails test test/system/batch_connect_test.rb -n test_auto_queues_qos_aware`

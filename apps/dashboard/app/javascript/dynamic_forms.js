@@ -3,15 +3,8 @@ import { ariaNotify } from './utils'
 // these are initialized in makeChangeHandlers
 var idPrefix = undefined;
 var shortNameRex = undefined;
-// aliasLookup is a nested hash of the form
-// {optionId: {value: alias}}
-// Note that values can have special characters so you must access with [] operator
-// example: {Cluster: {"foo-bar": "cluster1"}}
-// see `disabled_account_data` in `account_cache.rb`
-var aliasLookup = undefined;
 
-// a "token" is a reformatted HTML element ID
-// example: batch_connect_session_context_auto_accounts => AutoAccounts
+// @example ['NodeType', 'Cluster']
 const formTokens = [];
 
 // simple lookup table to indicate that the change handler is setup between two
@@ -35,6 +28,11 @@ const setValueLookup = {};
 const hideLookup = {};
 const labelLookup = {};
 const helpLookup = {};
+
+// aliasLookup is a nested hash of the form
+// {optionId: {value: alias}}
+// Note that values can have special characters so you must access with [] operator
+const aliasLookup = {};
 
 // the regular expression for mountain casing
 const mcRex = /[-_]([a-z])|([_-][0-9])|([\/])/g;
@@ -126,7 +124,6 @@ function makeChangeHandlers(prefix){
   // initialize some global variables.
   idPrefix = prefix;
   shortNameRex = new RegExp(`${idPrefix}_([\\w\\-]+)`);
-  aliasLookup = {}
 
   const allElements = $(`[id^=${idPrefix}]`);
   memorizeElements(allElements);
@@ -139,7 +136,9 @@ function makeChangeHandlers(prefix){
           // the variable 'opt' is just a data structure, not a jQuery result. 
           // it has no attr, data, show or hide methods so we have to query
           // for it again
-          let data = $(`${optionSearch}`).filter(() => this.value === opt.value).data();
+          let data = $(`${optionSearch}`).filter(function() {
+            return (this.value === opt.value);
+          }).data();
           let keys = Object.keys(data).sort();
           if(keys.length !== 0) {
             keys.forEach((key) => {
@@ -800,18 +799,18 @@ function cacheAliases(elementId) {
 }
 
 /**
- * Extract the token out of an option-for directive.
+ * Extract the option for out of an option for directive.
  *
  * @example
  *  optionForClusterOakley -> Cluster
  *  exclusiveOptionForClusterOakley -> Cluster
  *
- * @param {*} optionFor
+ * @param {*} str
  * @returns - the option for string
  */
-function sharedTokenFromOptionFor(optionFor, optionForType) {
+function sharedOptionForFromToken(str, optionForType) {  
   return formTokens.map((token) => {
-    let match = optionFor.match(`^${optionForType}${token}`);
+    let match = str.match(`^${optionForType}${token}`);
 
     if (match && match.length >= 1) {
       return token;
@@ -821,16 +820,16 @@ function sharedTokenFromOptionFor(optionFor, optionForType) {
   })[0];
 }
 
-function tokenFromOptionFor(str) {
-  return sharedTokenFromOptionFor(str, 'optionFor');
+function optionForFromToken(str) {
+  return sharedOptionForFromToken(str, 'optionFor');
 }
 
-function tokenFromExclusiveOptionFor(str) {
-  return sharedTokenFromOptionFor(str, 'exclusiveOptionFor');
+function exclusiveOptionForFromToken(str) {
+  return sharedOptionForFromToken(str, 'exclusiveOptionFor');
 }
 
-function sharedToggleOptionsFor(_event, targetId, optionForType) {
-  const options = [...document.querySelectorAll(`#${targetId} option`)];
+function sharedToggleOptionsFor(_event, elementId, contextStr) {
+  const options = [...document.querySelectorAll(`#${elementId} option`)];
   let hideSelectedValue = undefined;
 
   options.forEach(option => {
@@ -840,41 +839,41 @@ function sharedToggleOptionsFor(_event, targetId, optionForType) {
     // something else entirely. We're going to hide this option if _any_ of the
     // option-for- directives apply.
     for (let key of Object.keys(option.dataset)) {
-      let causeToken = '';
+      let optionFor = '';
 
-      if (optionForType == 'optionFor') {
-        causeToken = tokenFromOptionFor(key);
-      } else if (optionForType == 'exclusiveOptionFor') {
-        causeToken = tokenFromExclusiveOptionFor(key);
+      if (contextStr == 'optionFor') {
+        optionFor = optionForFromToken(key);
+      } else if (contextStr == 'exclusiveOptionFor') {
+        optionFor = exclusiveOptionForFromToken(key);
       }
-      let causeId = idFromToken(key.replace(new RegExp(`^${optionForType}`),''));
+      let optionForId = idFromToken(key.replace(new RegExp(`^${contextStr}`),''));
 
       // it's some other directive type, so just keep going and/or not real
-      if(!key.startsWith(optionForType) || causeId === undefined) {
+      if(!key.startsWith(contextStr) || optionForId === undefined) {
         continue;
       }
-      const causeValueRaw = document.getElementById(causeId).value;
-      let causeValue = mountainCaseWords(causeValueRaw);
+      const value = document.getElementById(optionForId).value;
+      let optionForValue = mountainCaseWords(value);
 
-      let causeValueAlias = '';
-      if ((targetId in aliasLookup) && (causeValueRaw in aliasLookup[targetId])) {
-        causeValueAlias = aliasLookup[targetId][causeValueRaw];
+      let optionForAlias = '';
+      if ((elementId in aliasLookup) && (value in aliasLookup[elementId])) {
+        optionForAlias = aliasLookup[elementId][value];
       }
       // handle special case where the very first token here is a number.
       // browsers expect a prefix of hyphens as if it's the next token.
-      if (causeValue.match(/^\d/)) {
-        causeValue = `-${causeValue}`;
+      if (optionForValue.match(/^\d/)) {
+        optionForValue = `-${optionForValue}`;
       }
-      if (optionForType == 'optionFor') {
-        let key = `optionFor${causeToken}${causeValue}`;
+      if (contextStr == 'optionFor') {
+        let key = `optionFor${optionFor}${optionForValue}`;
         if (!(key in option.dataset)) {
-          key = `optionFor${causeToken}${causeValueAlias}`;
+          key = `optionFor${optionFor}${optionForAlias}`;
         }
         hide = option.dataset[key] === 'false';
-      } else if (optionForType == 'exclusiveOptionFor') {
-        let key = `exclusiveOptionFor${causeToken}${causeValue}`;
+      } else if (contextStr == 'exclusiveOptionFor') {
+        let key = `exclusiveOptionFor${optionFor}${optionForValue}`;
         if (!(key in option.dataset)){
-          key = `exclusiveOptionFor${causeToken}${causeValueAlias}`;
+          key = `exclusiveOptionFor${optionFor}${optionForAlias}`;
         }
         hide = !(option.dataset[key] === 'true');
       }
@@ -883,7 +882,7 @@ function sharedToggleOptionsFor(_event, targetId, optionForType) {
       }
     };
 
-    const elementInfo = getWidgetInfo(targetId);
+    const elementInfo = getWidgetInfo(elementId);
     if(hide) {
       if(option.selected) {
         option.selected = false;
@@ -904,7 +903,7 @@ function sharedToggleOptionsFor(_event, targetId, optionForType) {
   // be the current selected value.
   // if you've hidden what _was_ selected.
   if(hideSelectedValue !== undefined) {
-    let others = [...document.querySelectorAll(`#${targetId} option[value='${hideSelectedValue}']`)];
+    let others = [...document.querySelectorAll(`#${elementId} option[value='${hideSelectedValue}']`)];
     let newSelectedOption = undefined;
 
     // You have hidden what _was_ selected, so try to find a duplicate option that is visible
@@ -919,7 +918,7 @@ function sharedToggleOptionsFor(_event, targetId, optionForType) {
 
     // no duplicates are visible, so just pick the first visible option
     if (newSelectedOption === undefined) {
-      others = document.querySelectorAll(`#${targetId} option`);
+      others = document.querySelectorAll(`#${elementId} option`);
       others.forEach(ele => {
         if(newSelectedOption === undefined && ele.style.display === '') {
           newSelectedOption = ele;
@@ -933,7 +932,7 @@ function sharedToggleOptionsFor(_event, targetId, optionForType) {
   }
 
   // now that we're done, propagate this change to data-set or data-hide handlers
-  document.getElementById(targetId).dispatchEvent((new Event('change', { bubbles: true })));
+  document.getElementById(elementId).dispatchEvent((new Event('change', { bubbles: true })));
 }
 
 // get attributes based on widget id

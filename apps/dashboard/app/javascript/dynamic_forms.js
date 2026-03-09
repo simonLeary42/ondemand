@@ -6,6 +6,8 @@ var shortNameRex = undefined;
 // aliasLookup is a nested hash of the form
 // {optionId: {value: alias}}
 // Note that values can have special characters so you must access with [] operator
+// example: {Cluster: {"foo-bar": "cluster1"}}
+// see `disabled_account_data` in `account_cache.rb`
 var aliasLookup = undefined;
 
 // a "token" is a reformatted HTML element ID
